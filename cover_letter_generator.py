@@ -4,9 +4,9 @@ from docx import Document
 from datetime import date
 
 today = date.today()
-name = 'Patrick Wenzel'
+name = 'NAME'
 # Make sure to do \\ instead of \ in your file
-TEMPLATE_COVER_LETTER_FOLDER_PATH = "C:\\Users\\patrick.wenzel\\Documents\\Other\\Cover Letter\\"
+TEMPLATE_COVER_LETTER_FOLDER_PATH = "PATH"
 DOCUMENT_NAME = name + " Cover Letter.docx"
 doc = Document(TEMPLATE_COVER_LETTER_FOLDER_PATH + DOCUMENT_NAME)
 
