@@ -4,10 +4,12 @@ import re
 import sys
 from english_words import get_english_words_set
 
-if len(sys.argv) < 4 or len(sys.argv) > 5:
+if len(sys.argv) < 2 or len(sys.argv) > 3:
     raise Exception('Incorrect number of arguments, need three letters and one guessing word (optional)')
+elif len(sys.argv[1]) != 3:
+    raise Exception('First argument must only contain three letters')
 
-guessWord = sys.argv[4].lower() if len(sys.argv) == 5 else None
+guessWord = sys.argv[2].lower() if len(sys.argv) == 3 else None
 scrabbleValues = {
     1: ['A', 'E', 'I', 'O', 'U', 'L', 'N', 'S', 'T', 'R'],
     2: ['D', 'G'],
@@ -52,15 +54,54 @@ def getWordValue(word):
 
     return score
 
-words = list(get_english_words_set(['web2'], lower=True))
+def printWords(wordsArg):
+    remainingWords = len(wordsArg) % 5
+    i = 0
+    while i < (len(wordsArg) - remainingWords - 4):
+        s = ''
+        z = 0
+        while z < 5:
+            s += wordsArg[i + z] + ('\t\t' if z < 4 else '\n')
+            z += 1
 
-args = getNewArgs(sys.argv[1:])
+        print(s)
+        i += 5
+
+    i = len(wordsArg) - remainingWords
+    s = ''
+    while i < len(wordsArg):
+        s += wordsArg[i] + '\t\t' if i < len(wordsArg) else ''
+        i += 1
+
+    print(s)
+
+words = list(get_english_words_set(['web2'], lower=True))
+sargs = sys.argv[1]
+
+args = getNewArgs([sargs[0], sargs[1], sargs[2], 'None' if len(sys.argv) != 3 else sys.argv[2]])
 regex = getRegEx(args)
 
 foundWords = list(filter(lambda word: re.match(regex, word) and validCharCounts(args, word), words))
-foundWords.sort()
+wordList = {}
 
-print(foundWords)
+for word in foundWords:
+    try:
+        wordList[len(word)].append(word)
+    except:
+        wordList[len(word)] = [word]
+
+for key in wordList.keys():
+    wordList[key].sort()
+
+keys = list(wordList.keys())
+keys.sort()
+
+for key in keys:
+    print(str(key) + ' letter words:')
+    printWords(wordList[key])
+    print()
+    print()
+
 
 if guessWord != None:
     isFound = guessWord in foundWords
