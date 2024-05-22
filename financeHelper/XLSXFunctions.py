@@ -15,6 +15,7 @@ def cleanSheet(minWeek, sheet):
                 sheet.cell(row = i, column = 2).value = None
                 sheet.cell(row = i, column = 3).value = None
                 sheet.cell(row = i, column = 4).value = None
+        i = i + 1
     
     return replaceRow
 
