@@ -1,0 +1,104 @@
+---
+title: "Credit Card Statement Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(dplyr.tibble.inform = FALSE)
+
+library(dplyr)
+library(lubridate)
+```
+
+``` {r}
+today <- format(Sys.Date(), format = "%Y%m%d")
+
+startNextMonth <- ceiling_date(Sys.Date(), 'month')
+endCurMonth <- startNextMonth - 1
+startCurMonth <- endCurMonth - as.numeric(format(as.Date(endCurMonth), format = "%d")) + 1
+startCurMonth <- format(as.Date(startCurMonth), format = "%Y%m%d")
+daysInMonth <- as.numeric(format(as.Date(endCurMonth), format = "%d"))
+
+endPrevMonth <- endCurMonth - daysInMonth
+startPrevMonth <- endPrevMonth - as.numeric(format(as.Date(endPrevMonth), format = "%d")) + 1
+startPrevMonth <- format(as.Date(startPrevMonth), format = "%Y%m%d")
+endPrevMonthDate <- as.Date(endPrevMonth)
+endPrevMonth <- format(endPrevMonthDate, format = "%Y%m%d")
+endCurMonth <- format(as.Date(endCurMonth), format = "%Y%m%d")
+
+csvLocationCurMonth <- paste(Sys.getenv('CC_CSV_LOCATION'), startCurMonth, '_', today, '.csv', sep = '') # endCurMonth
+activityFileCurMonth <- read.csv(csvLocationCurMonth)
+activityFileCurMonth$Transaction.Date <- NULL
+activityFileCurMonth$Memo <- NULL
+activityFileCurMonth$Type <- NULL
+
+csvLocationPrevMonth <- paste(Sys.getenv('CC_CSV_LOCATION'), startPrevMonth, '_', endPrevMonth, '.csv', sep = '')
+activityFilePrevMonth <- read.csv(csvLocationPrevMonth)
+activityFilePrevMonth$Transaction.Date <- NULL
+activityFilePrevMonth$Memo <- NULL
+activityFilePrevMonth$Type <- NULL
+```
+
+```{r}
+amount <- sum(activityFileCurMonth$Amount)
+month <- format(Sys.Date(), format="%B")
+year <- format(Sys.Date(), format = "%Y")
+amount <- paste('For the month of', month, year, 'you have spent $', amount * -1)
+print(amount)
+
+amount <- sum(activityFilePrevMonth$Amount)
+month <- format(endPrevMonthDate, format="%B")
+amount <- paste('Compared to $', amount * -1, 'during', month, 'last month')
+print(amount)
+```
+
+```{r}
+print(activityFileCurMonth)
+activityFileCurMonth <- activityFileCurMonth[activityFileCurMonth$Amount < 0,]
+activityFileCurMonth$Amount <- activityFileCurMonth$Amount*(-1)
+```
+
+### Spending by Category:
+```{r}
+spendingByCategory <- activityFileCurMonth %>% group_by(Category) %>%
+    summarise(sum = sum(Amount)) %>%
+    arrange(sum)
+print(as_tibble(spendingByCategory), n = 100)
+```
+
+```{r}
+slices <- spendingByCategory$sum
+lbls <- spendingByCategory$Category
+
+pie(slices, labels = lbls, main = "Pie")
+```
+
+### Spending by Place:
+```{r}
+spendingByPlace <- activityFileCurMonth %>% group_by(Description) %>%
+    summarise(sum = sum(Amount)) %>%
+    arrange(sum)
+print(as_tibble(spendingByPlace), n = 100)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
